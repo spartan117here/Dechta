@@ -1,0 +1,2334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Quick Construct Driver Pro</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet CSS & JS (Free Maps) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Google Fonts for Indian Languages -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&family=Noto+Sans+Tamil:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', '"Noto Sans Tamil"', '"Mukta"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: { 50: '#ecfeff', 100: '#cffafe', 200: '#a5f3fc', 300: '#67e8f9', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2', 700: '#0e7490', 800: '#155e75', 900: '#164e63' },
+                        dark: { bg: '#0f172a', surface: '#1e293b', border: '#334155' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        .pt-safe-top {
+            padding-top: env(safe-area-inset-top, 20px);
+        }
+
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        /* Map Specifics */
+        .map-container {
+            z-index: 0;
+        }
+
+        .bottom-sheet {
+            z-index: 20;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .scale-in {
+            animation: scaleIn 0.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* --- THEME REVEAL ANIMATION (View Transitions) --- */
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation: none;
+            mix-blend-mode: normal;
+        }
+
+        /* --- PREMIUM TRUCK ANIMATION --- */
+        @keyframes moveRoad {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        @keyframes moveCity {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        @keyframes driveBounce {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(1px) rotate(0.5deg);
+            }
+
+            50% {
+                transform: translateY(-1px) rotate(0deg);
+            }
+
+            75% {
+                transform: translateY(0.5px) rotate(-0.5deg);
+            }
+        }
+
+        @keyframes wheelSpin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes exhaustPuff {
+            0% {
+                transform: translate(0, 0) scale(0.5);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: translate(-30px, -15px) scale(2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes passingCloud {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.8;
+            }
+
+            90% {
+                opacity: 0.8;
+            }
+
+            to {
+                transform: translateX(-150%);
+                opacity: 0;
+            }
+        }
+
+        .animate-road-fast {
+            animation: moveRoad 0.6s linear infinite;
+        }
+
+        .animate-city-slow {
+            animation: moveCity 15s linear infinite;
+        }
+
+        .animate-truck-physics {
+            animation: driveBounce 0.8s ease-in-out infinite;
+        }
+
+        .animate-wheel-spin {
+            transform-origin: center;
+            animation: wheelSpin 0.3s linear infinite;
+        }
+
+        .exhaust-puff {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .puff-1 {
+            width: 6px;
+            height: 6px;
+            animation: exhaustPuff 1s ease-out infinite;
+            left: 5px;
+            top: 45px;
+        }
+
+        .puff-2 {
+            width: 8px;
+            height: 8px;
+            animation: exhaustPuff 1s ease-out infinite 0.3s;
+            left: 5px;
+            top: 45px;
+        }
+
+        .puff-3 {
+            width: 5px;
+            height: 5px;
+            animation: exhaustPuff 1s ease-out infinite 0.6s;
+            left: 5px;
+            top: 45px;
+        }
+
+        .animate-cloud-1 {
+            animation: passingCloud 12s linear infinite;
+        }
+
+        .animate-cloud-2 {
+            animation: passingCloud 18s linear infinite 5s;
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            pointer-events: none;
+            width: 100%;
+            display: flex;
+            flex-col;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast {
+            pointer-events: auto;
+            padding: 12px 24px;
+            border-radius: 50px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes toastIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Custom Leaflet Markers */
+        .custom-marker {
+            background: none;
+            border: none;
+        }
+
+        .marker-pin {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% 50% 50% 0;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -20px 0 0 -20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .marker-pin::after {
+            content: '';
+            width: 24px;
+            height: 24px;
+            margin: 8px 0 0 8px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .marker-icon {
+            transform: rotate(45deg);
+            z-index: 10;
+            position: relative;
+        }
+
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #06b6d4;
+        }
+
+        .toggle-checkbox:checked+.toggle-label {
+            background-color: #06b6d4;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gray-50 text-slate-900 dark:bg-dark-bg dark:text-slate-100 h-screen overflow-hidden font-sans antialiased transition-colors duration-300">
+
+    <div id="toast-container"></div>
+    <div id="app" class="h-full w-full relative"></div>
+
+    <!-- Modal Overlay Template -->
+    <div id="modal-overlay" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="App.closeModal()"></div>
+        <div
+            class="absolute bottom-0 w-full bg-white dark:bg-dark-surface rounded-t-3xl p-6 slide-up max-h-[80vh] overflow-y-auto pb-safe">
+            <div class="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mb-6"></div>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Language Selection Modal (Specific) -->
+    <div id="lang-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="App.toggleLangModal()"></div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] max-w-sm bg-white dark:bg-dark-surface rounded-3xl p-6 scale-in shadow-2xl">
+            <h2 class="text-xl font-bold mb-4 dark:text-white text-center">Select Language / மொழி</h2>
+            <div class="space-y-3">
+                <button onclick="App.setLanguage('en')"
+                    class="w-full p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <span class="font-bold text-lg">English</span>
+                    <span class="text-2xl">🇺🇸</span>
+                </button>
+                <button onclick="App.setLanguage('ta')"
+                    class="w-full p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <span class="font-bold text-lg font-sans">தமிழ்</span>
+                    <span class="text-2xl">🇮🇳</span>
+                </button>
+                <button onclick="App.setLanguage('hi')"
+                    class="w-full p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <span class="font-bold text-lg font-sans">हिंदी</span>
+                    <span class="text-2xl">🇮🇳</span>
+                </button>
+            </div>
+            <button onclick="App.toggleLangModal()"
+                class="w-full mt-6 py-3 text-slate-500 font-bold hover:text-slate-700 dark:text-slate-400">Close / மூடு
+                / बंद करें</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 0. TRANSLATIONS DATABASE ---
+        const TRANSLATIONS = {
+            en: {
+                app_name: "Quick Construct",
+                welcome_subtitle: "Deliver construction materials efficiently and earn on your schedule.",
+                login_btn: "Login with Mobile",
+                welcome_back: "Welcome Back",
+                verify_details: "Verify Details",
+                enter_mobile: "Enter your mobile number to receive a verification code.",
+                enter_otp: "Enter the 4-digit code sent to",
+                mobile_label: "Mobile Number",
+                otp_label: "One-Time Password",
+                change_number: "Change Number",
+                resend_otp: "Resend OTP",
+                get_otp: "Get OTP",
+                verify_login: "Verify & Login",
+                new_partner: "New Partner?",
+                create_account: "Create Account",
+                register_title: "New Partner Registration",
+                upload_photo: "Upload Profile Photo",
+                personal_details: "Personal Details",
+                full_name: "Full Name",
+                emergency_contact: "Emergency Contact Number",
+                blood_group: "Blood Group",
+                work_pref: "Work Preferences",
+                pref_zone: "Preferred Zone",
+                tshirt_size: "T-Shirt Size (For Uniform)",
+                vehicle_details: "Vehicle Details",
+                vehicle_number: "Vehicle Number (e.g. TN 07 AB 1234)",
+                documents_kyc: "Documents (KYC)",
+                driving_license: "Driving License",
+                rc_book: "RC Book (Registration)",
+                insurance: "Vehicle Insurance",
+                aadhaar: "Aadhaar Card",
+                bank_details: "Bank Details",
+                ifsc: "IFSC Code",
+                account_num: "Account Number",
+                confirm_account: "Confirm Account Number",
+                referral: "Referral",
+                referral_code: "Referral Code (Optional)",
+                submit_app: "Submit Application",
+                earnings_history: "Earnings History",
+                total_earnings: "Total Earnings",
+                trips: "Trips",
+                bonus: "Bonus",
+                recent_trips: "Recent Trips",
+                paid: "PAID",
+                wallet_title: "My Wallet",
+                wallet_bal: "Wallet Balance",
+                add_money: "Add Money",
+                used_for_comm: "Used for paying commissions",
+                pending_comm: "Pending Commissions",
+                limit_exceeded: "LIMIT EXCEEDED (Max ₹300)",
+                limit_normal: "Limit: ₹300",
+                enter_pay_amount: "Enter Amount to Pay",
+                pay: "Pay",
+                acct_suspended: "ACCOUNT SUSPENDED. Pay dues to go online.",
+                pay_dues_hint: "Pay pending commissions to keep your account active.",
+                recent_trans: "Recent Transactions",
+                online: "Online",
+                offline: "Offline",
+                home: "Home",
+                profile: "Profile",
+                todays_earnings: "Today's Earnings",
+                nearby_orders: "Nearby Orders",
+                offline_mode: "Offline Mode",
+                go_online_msg: "Go Online to accept orders",
+                decline: "Decline",
+                accept: "Accept",
+                pickup: "Pickup",
+                drop: "Drop",
+                cash: "Cash",
+                picking_up: "Picking Up",
+                delivering: "Delivering",
+                order_id: "Order ID",
+                customer: "Customer",
+                arrived_pickup: "Arrived at Pickup",
+                complete_delivery: "Complete Delivery",
+                all_caught_up: "All caught up!",
+                no_active: "You have no active deliveries.",
+                find_orders: "Refresh Orders",
+                vehicle_info: "Vehicle Info",
+                documents: "Documents",
+                bank_acct: "Bank Account",
+                sign_out: "Sign Out",
+                language: "Language",
+                select_lang: "Select Language",
+                voice_narration: "Voice Narration",
+                voice_on: "Voice ON",
+                voice_off: "Voice OFF"
+            },
+            ta: {
+                app_name: "குவிக் கன்ஸ்ட்ரக்ட்",
+                welcome_subtitle: "கட்டுமானப் பொருட்களை டெலிவரி செய்து உங்கள் நேரத்தில் சம்பாதிக்கவும்.",
+                login_btn: "மொபைல் மூலம் உள்நுழையவும்",
+                welcome_back: "மீண்டும் வருக",
+                verify_details: "விவரங்களை சரிபார்க்கவும்",
+                enter_mobile: "சரிபார்ப்பு குறியீட்டைப் பெற உங்கள் மொபைல் எண்ணை உள்ளிடவும்.",
+                enter_otp: "அனுப்பப்பட்ட 4 இலக்க குறியீட்டை உள்ளிடவும்",
+                mobile_label: "மொபைல் எண்",
+                otp_label: "ஒரு முறை கடவுச்சொல் (OTP)",
+                change_number: "எண்ணை மாற்ற",
+                resend_otp: "OTP மீண்டும் அனுப்பவும்",
+                get_otp: "OTP பெறவும்",
+                verify_login: "சரிபார்த்து உள்நுழையவும்",
+                new_partner: "புதிய கூட்டாளரா?",
+                create_account: "கணக்கை உருவாக்கவும்",
+                register_title: "புதிய ஓட்டுநர் பதிவு",
+                upload_photo: "புகைப்படத்தை பதிவேற்றவும்",
+                personal_details: "தனிப்பட்ட விவரங்கள்",
+                full_name: "முழு பெயர்",
+                emergency_contact: "அவசர தொடர்பு எண்",
+                blood_group: "இரத்த வகை",
+                work_pref: "வேலை விருப்பங்கள்",
+                pref_zone: "விருப்பமான மண்டலம்",
+                tshirt_size: "சட்டை அளவு (சீருடை)",
+                vehicle_details: "வாகன விவரங்கள்",
+                vehicle_number: "வண்டி எண் (எ.கா. TN 07 AB 1234)",
+                documents_kyc: "ஆவணங்கள் (KYC)",
+                driving_license: "ஓட்டுநர் உரிமம்",
+                rc_book: "ஆர்.சி புத்தகம்",
+                insurance: "வாகன காப்பீடு",
+                aadhaar: "ஆதார் அட்டை",
+                bank_details: "வங்கி விவரங்கள்",
+                ifsc: "IFSC குறியீடு",
+                account_num: "வங்கி கணக்கு எண்",
+                confirm_account: "கணக்கு எண்ணை உறுதிப்படுத்தவும்",
+                referral: "பரிந்துரை",
+                referral_code: "பரிந்துரை குறியீடு (விருப்பினால்)",
+                submit_app: "விண்ணப்பத்தை சமர்ப்பிக்கவும்",
+                earnings_history: "வருவாய் வரலாறு",
+                total_earnings: "மொத்த வருவாய்",
+                trips: "பயணங்கள்",
+                bonus: "போனஸ்",
+                recent_trips: "சமீபத்திய பயணங்கள்",
+                paid: "செலுத்தப்பட்டது",
+                wallet_title: "என் பணப்பை (Wallet)",
+                wallet_bal: "பணப்பை இருப்பு",
+                add_money: "பணம் சேர்க்க",
+                used_for_comm: "கமிஷன் செலுத்த பயன்படுத்தப்படுகிறது",
+                pending_comm: "நிலுவையில் உள்ள கமிஷன்",
+                limit_exceeded: "வரம்பு மீறப்பட்டது (அதிகபட்சம் ₹300)",
+                limit_normal: "வரம்பு: ₹300",
+                enter_pay_amount: "செலுத்த வேண்டிய தொகை",
+                pay: "செலுத்து",
+                acct_suspended: "கணக்கு முடக்கப்பட்டது. ஆன்லைனில் செல்ல நிலுவையைச் செலுத்தவும்.",
+                pay_dues_hint: "உங்கள் கணக்கைச் செயலில் வைத்திருக்க நிலுவைத் தொகையைச் செலுத்தவும்.",
+                recent_trans: "சமீபத்திய பரிவர்த்தனைகள்",
+                online: "ஆன்லைன்",
+                offline: "ஆஃப்லைன்",
+                home: "முகப்பு",
+                profile: "சுயவிவரம்",
+                todays_earnings: "இன்றைய வருவாய்",
+                nearby_orders: "அருகிலுள்ள ஆர்டர்கள்",
+                offline_mode: "ஆஃப்லைன் முறை",
+                go_online_msg: "ஆர்டர்களை ஏற்க ஆன்லைனில் செல்லவும்",
+                decline: "நிராகரி",
+                accept: "ஏற்கவும்",
+                pickup: "பிக்கப்",
+                drop: "இறக்குமிடம்",
+                cash: "ரொக்கம்",
+                picking_up: "பிக்கப் செய்கிறது",
+                delivering: "டெலிவரி செய்கிறது",
+                order_id: "ஆர்டர் ஐடி",
+                customer: "வாடிக்கையாளர்",
+                arrived_pickup: "பிக்கப் இடத்திற்கு வந்துவிட்டேன்",
+                complete_delivery: "டெலிவரி முடிந்தது",
+                all_caught_up: "எல்லாம் முடிந்தது!",
+                no_active: "உங்களிடம் செயலில் உள்ள ஆர்டர்கள் இல்லை.",
+                find_orders: "புதிய ஆர்டர்களைத் தேடுங்கள்",
+                vehicle_info: "வாகன தகவல்",
+                documents: "ஆவணங்கள்",
+                bank_acct: "வங்கி கணக்கு",
+                sign_out: "வெளியேறு",
+                language: "மொழி",
+                select_lang: "மொழியைத் தேர்ந்தெடுக்கவும்",
+                voice_narration: "குரல் விவரிப்பு",
+                voice_on: "குரல் ஆன்",
+                voice_off: "குரல் ஆஃப்"
+            },
+            hi: {
+                app_name: "क्विक कंस्ट्रक्ट",
+                welcome_subtitle: "निर्माण सामग्री वितरित करें और अपने समय पर कमाएं।",
+                login_btn: "मोबाइल से लॉगिन करें",
+                welcome_back: "वापसी पर स्वागत है",
+                verify_details: "विवरण सत्यापित करें",
+                enter_mobile: "सत्यापन कोड प्राप्त करने के लिए अपना मोबाइल नंबर दर्ज करें।",
+                enter_otp: "भेजा गया 4-अंकीय कोड दर्ज करें",
+                mobile_label: "मोबाइल नंबर",
+                otp_label: "वन-टाइम पासवर्ड (OTP)",
+                change_number: "नंबर बदलें",
+                resend_otp: "OTP पुनः भेजें",
+                get_otp: "OTP प्राप्त करें",
+                verify_login: "सत्यापित करें और लॉगिन करें",
+                new_partner: "नए पार्टनर?",
+                create_account: "खाता बनाएं",
+                register_title: "नया पार्टनर पंजीकरण",
+                upload_photo: "प्रोफ़ाइल फ़ोटो अपलोड करें",
+                personal_details: "व्यक्तिगत विवरण",
+                full_name: "पूरा नाम",
+                emergency_contact: "आपातकालीन संपर्क नंबर",
+                blood_group: "रक्त समूह",
+                work_pref: "काम की प्राथमिकताएं",
+                pref_zone: "पसंदीदा क्षेत्र",
+                tshirt_size: "टी-शर्ट का आकार (वर्दी)",
+                vehicle_details: "वाहन विवरण",
+                vehicle_number: "वाहन नंबर (उदा. TN 07 AB 1234)",
+                documents_kyc: "दस्तावेज़ (KYC)",
+                driving_license: "ड्राइविंग लाइसेंस",
+                rc_book: "आरसी बुक",
+                insurance: "वाहन बीमा",
+                aadhaar: "आधार कार्ड",
+                bank_details: "बैंक विवरण",
+                ifsc: "IFSC कोड",
+                account_num: "खाता संख्या",
+                confirm_account: "खाता संख्या की पुष्टि करें",
+                referral: "रेफरल",
+                referral_code: "रेफरल कोड (वैकल्पिक)",
+                submit_app: "आवेदन जमा करें",
+                earnings_history: "कमाई का इतिहास",
+                total_earnings: "कुल कमाई",
+                trips: "यात्राएं",
+                bonus: "बोनस",
+                recent_trips: "हाल की यात्राएं",
+                paid: "भुगतान किया",
+                wallet_title: "मेरा वॉलेट",
+                wallet_bal: "वॉलेट बैलेंस",
+                add_money: "पैसे जोड़ें",
+                used_for_comm: "कमीशन का भुगतान करने के लिए उपयोग किया जाता है",
+                pending_comm: "बकाया कमीशन",
+                limit_exceeded: "सीमा पार हो गई (अधिकतम ₹300)",
+                limit_normal: "सीमा: ₹300",
+                enter_pay_amount: "भुगतान राशि दर्ज करें",
+                pay: "भुगतान करें",
+                acct_suspended: "खाता निलंबित। ऑनलाइन जाने के लिए बकाया चुकाएं।",
+                pay_dues_hint: "अपने खाते को सक्रिय रखने के लिए बकाया कमीशन का भुगतान करें।",
+                recent_trans: "हाल के लेनदेन",
+                online: "ऑनलाइन",
+                offline: "ऑफलाइन",
+                home: "होम",
+                profile: "प्रोफ़ाइल",
+                todays_earnings: "आज की कमाई",
+                nearby_orders: "निकटतम ऑर्डर",
+                offline_mode: "ऑफलाइन मोड",
+                go_online_msg: "ऑर्डर स्वीकार करने के लिए ऑनलाइन जाएं",
+                decline: "अस्वीकार",
+                accept: "स्वीकार",
+                pickup: "पिकअप",
+                drop: "ड्रॉप",
+                cash: "नकद",
+                picking_up: "पिकअप कर रहा है",
+                delivering: "डिलीवरी कर रहा है",
+                order_id: "ऑर्डर आईडी",
+                customer: "ग्राहक",
+                arrived_pickup: "पिकअप पर पहुंचे",
+                complete_delivery: "डिलीवरी पूरी करें",
+                all_caught_up: "सब हो गया!",
+                no_active: "आपके पास कोई सक्रिय डिलीवरी नहीं है।",
+                find_orders: "नए ऑर्डर खोजें",
+                vehicle_info: "वाहन जानकारी",
+                documents: "दस्तावेज़",
+                bank_acct: "बैंक खाता",
+                sign_out: "साइन आउट",
+                language: "भाषा",
+                select_lang: "भाषा चुनें",
+                voice_narration: "आवाज़ कथन",
+                voice_on: "आवाज़ चालू",
+                voice_off: "आवाज़ बंद"
+            }
+        };
+
+        // --- 1. ICON LIBRARY ---
+        const ICONS = {
+            moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />',
+            sun: '<g><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></g>',
+            loader: '<path d="M21 12a9 9 0 1 1-6.219-8.56" />',
+            package: '<g><path d="m16.5 9.4-9-5.19"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></g>',
+            truck: '<g><rect width="16" height="16" x="1" y="3" rx="2" ry="2"/><line x1="1" x2="17" y1="10" y2="10"/><path d="M17 10h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"/><circle cx="5" cy="19" r="2"/><circle cx="13" cy="19" r="2"/></g>',
+            arrowRight: '<path d="M5 12h14M12 5l7 7-7 7"/>',
+            arrowLeft: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+            coffee: '<g><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></g>',
+            check: '<polyline points="20 6 9 17 4 12"/>',
+            user: '<g><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></g>',
+            star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+            file: '<g><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></g>',
+            card: '<g><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></g>',
+            logout: '<g><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></g>',
+            home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+            nav: '<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
+            power: '<path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/>',
+            upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
+            bike: '<circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>',
+            car: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
+            camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+            phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+            mapPin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+            trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+            shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+            gift: '<polyline points="20 12 20 22 4 22 4 12"/><rect width="20" height="5" x="2" y="7"/><line x1="12" x2="12" y1="22" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
+            lock: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>',
+            wallet: '<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" /><path d="M3 5v14a2 2 0 0 0 2 2h16v-5" /><path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />',
+            plus: '<line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />',
+            globe: '<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"></path>',
+            volumeUp: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>',
+            volumeOff: '<line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v6a3 3 0 0 0 5.12-2.12M15.5 19.39l-4.21 2.51L9.41 19H6v-6h3.29l1-1M15.54 8.46a5 5 0 0 1 1.3 2.85"></path>'
+        };
+
+
+        function getIcon(name, size = 24, classes = '') {
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${classes}">${ICONS[name] || ''}</svg>`;
+        }
+
+        // --- 2. HELPERS ---
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerText = message;
+            container.appendChild(toast);
+
+            // Trigger Voice for Toast
+            App.speak(message);
+
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Sound Player
+        function playNotificationSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
+
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            } catch (e) {
+                console.log('Audio play failed', e);
+            }
+        }
+
+        // --- 3. STATE MANAGEMENT ---
+        const App = {
+            state: {
+                view: 'welcome',
+                isLoading: false,
+                isDark: localStorage.getItem('theme') === 'true',
+                language: localStorage.getItem('language') || 'en', // DEFAULT: English, checks storage
+                isVoiceOn: localStorage.getItem('isVoiceOn') !== 'false', // Default to True unless explicitly disabled
+                tab: 'home',
+                isOnline: false,
+                activeMap: null,
+
+                // Simulation State
+                demoCount: 0,
+
+                // Wallet State - CLEAN START (No Mock Data)
+                walletBalance: 0.00,
+                outstandingDues: 0.00,
+                walletTransactions: [],
+
+                // Login State
+                loginStep: 1,
+                loginOtp: '',
+
+                // Delivery OTP State
+                deliveryOtp: '',
+                activeTripId: null,
+
+                regData: {
+                    fullName: '',
+                    mobile: '',
+                    facePhoto: null,
+                    vehicleType: '2wheeler',
+                    vehicleNumber: '',
+                    licenseFile: null,
+                    rcFile: null,
+                    insuranceFile: null,
+                    aadhaarFile: null,
+                    bankAccount: '',
+                    confirmBankAccount: '',
+                    ifsc: '',
+                    emergencyContact: '',
+                    bloodGroup: '',
+                    dob: '',
+                    preferredZone: 'North Chennai',
+                    tshirtSize: 'L',
+                    referralCode: ''
+                },
+
+                // Orders - CLEAN START (No Mock Data)
+                orders: [],
+                trips: [],
+                pastTrips: []
+            },
+
+            // --- METHODS ---
+
+            init() {
+                this.applyTheme();
+                this.render();
+
+                // --- FORCE VOICE LOADING FIX ---
+                if ('speechSynthesis' in window) {
+                    // Chrome needs this to trigger voice loading
+                    window.speechSynthesis.getVoices();
+
+                    // This ensures voices are re-fetched when the list changes/loads
+                    window.speechSynthesis.onvoiceschanged = () => {
+                        console.log("Voices loaded:", window.speechSynthesis.getVoices().length);
+                    };
+                }
+                
+                // --- BACKEND PLACEHOLDER: Connect to real backend socket/stream here to get live orders ---
+                // Example: socket.on('newOrder', (order) => { ... });
+            },
+
+            // TRANSLATION HELPER
+            t(key) {
+                const lang = this.state.language;
+                // Fallback to English if translation missing or key missing
+                return TRANSLATIONS[lang]?.[key] || TRANSLATIONS['en'][key] || key;
+            },
+
+            // --- VOICE NARRATION LOGIC (FIXED) ---
+            speak(textOrKey) {
+                if (!this.state.isVoiceOn || !('speechSynthesis' in window)) return;
+
+                // 1. Cancel any current speech to prevent overlap
+                window.speechSynthesis.cancel();
+
+                const lang = this.state.language;
+
+                // 2. Get the translation text
+                let textToSpeak = TRANSLATIONS[lang]?.[textOrKey] || textOrKey;
+
+                // Clean emojis (they can break some older TTS engines)
+                textToSpeak = textToSpeak.replace(/[\u{1F600}-\u{1F6FF}]|[\u{2600}-\u{26FF}]/gu, '');
+
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+
+                // 3. Force get voices (Handle Chrome/Android async loading)
+                let voices = window.speechSynthesis.getVoices();
+
+                // 4. CRITICAL: Set the Language Tag & Find Voice
+                let selectedVoice = null;
+
+                if (lang === 'ta') {
+                    utterance.lang = 'ta-IN'; // Essential for fallback
+
+                    // Try to find a voice in this order: Exact match -> Contains 'ta' -> Contains 'Tamil'
+                    selectedVoice = voices.find(v => v.lang === 'ta-IN') ||
+                        voices.find(v => v.lang.includes('ta-IN')) ||
+                        voices.find(v => v.lang.includes('ta_IN')) ||
+                        voices.find(v => v.lang.includes('ta')) ||
+                        voices.find(v => v.name.toLowerCase().includes('tamil'));
+                }
+                else if (lang === 'hi') {
+                    utterance.lang = 'hi-IN';
+                    selectedVoice = voices.find(v => v.lang.includes('hi-IN')) ||
+                        voices.find(v => v.lang.includes('hi'));
+                }
+                else {
+                    utterance.lang = 'en-IN'; // Prefer Indian English
+                    selectedVoice = voices.find(v => v.lang.includes('en-IN')) ||
+                        voices.find(v => v.lang.includes('en_US'));
+                }
+
+                // 5. Apply the voice if we found one
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                }
+
+                // 6. Adjust Rate (Tamil often sounds better slightly slower)
+                utterance.rate = (lang === 'ta') ? 0.85 : 0.9;
+                utterance.pitch = 1.0;
+
+                window.speechSynthesis.speak(utterance);
+            },
+            
+            toggleVoice() {
+                this.state.isVoiceOn = !this.state.isVoiceOn;
+                localStorage.setItem('isVoiceOn', this.state.isVoiceOn);
+                this.render();
+
+                if (this.state.isVoiceOn) {
+                    this.speak('voice_on');
+                } else {
+                    window.speechSynthesis.cancel();
+                }
+            },
+
+            setLanguage(lang) {
+                this.state.language = lang;
+                localStorage.setItem('language', lang);
+                this.closeModal(); // Close generic
+                document.getElementById('lang-modal').classList.add('hidden'); // Close specific
+                this.render();
+
+                // Narrate Language Change
+                setTimeout(() => {
+                    if (lang === 'en') this.speak("Language changed to English");
+                    if (lang === 'ta') this.speak("மொழி தமிழுக்கு மாற்றப்பட்டது");
+                    if (lang === 'hi') this.speak("भाषा हिंदी में बदल दी गई");
+                }, 300);
+            },
+
+            toggleLangModal() {
+                const modal = document.getElementById('lang-modal');
+                modal.classList.toggle('hidden');
+            },
+
+            toggleTheme(event) {
+                const nextState = !this.state.isDark;
+
+                const updateState = () => {
+                    this.state.isDark = nextState;
+                    localStorage.setItem('theme', this.state.isDark);
+                    this.applyTheme();
+                    this.render();
+
+                    if (this.state.view === 'dashboard' && this.state.tab === 'trips' && this.state.trips.length > 0) {
+                        setTimeout(() => this.initLeafletMap(this.state.trips[0]), 100);
+                    }
+                };
+
+                if (!document.startViewTransition || !event) {
+                    updateState();
+                    return;
+                }
+
+                const x = event.clientX;
+                const y = event.clientY;
+
+                const endRadius = Math.hypot(
+                    Math.max(x, window.innerWidth - x),
+                    Math.max(y, window.innerHeight - y)
+                );
+
+                const transition = document.startViewTransition(() => {
+                    updateState();
+                });
+
+                transition.ready.then(() => {
+                    const clipPath = [
+                        `circle(0px at ${x}px ${y}px)`,
+                        `circle(${endRadius}px at ${x}px ${y}px)`
+                    ];
+
+                    document.documentElement.animate(
+                        {
+                            clipPath: clipPath,
+                        },
+                        {
+                            duration: 500,
+                            easing: 'ease-out',
+                            pseudoElement: '::view-transition-new(root)',
+                        }
+                    );
+                });
+            },
+
+            applyTheme() {
+                if (this.state.isDark) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            },
+
+            setView(viewName) {
+                this.state.view = viewName;
+                if (viewName === 'login') {
+                    this.state.loginStep = 1;
+                    this.state.loginOtp = '';
+                    this.speak('login_btn');
+                } else if (viewName === 'wallet') {
+                    this.speak('wallet_title');
+                } else if (viewName === 'earnings') {
+                    this.speak('earnings_history');
+                }
+
+                this.render();
+            },
+
+            // --- WALLET METHODS ---
+
+            addMoney() {
+                this.state.isLoading = true;
+                this.render();
+
+                setTimeout(() => {
+                    this.state.isLoading = false;
+                    const amount = 500;
+                    this.state.walletBalance += amount;
+                    this.state.walletTransactions.unshift({
+                        id: Date.now(),
+                        type: 'credit',
+                        amount: amount,
+                        date: 'Just now',
+                        desc: 'Wallet Top-up'
+                    });
+                    
+                    // --- BACKEND PLACEHOLDER: Update wallet balance on server ---
+                    
+                    this.render();
+                    showToast('₹500 Added. Balance Updated!');
+                }, 1500);
+            },
+
+            payDues(amountInput) {
+                const amountToPay = parseFloat(amountInput);
+                const currentDues = this.state.outstandingDues;
+                const walletBal = this.state.walletBalance;
+
+                if (!amountToPay || amountToPay <= 0) {
+                    showToast('Please enter a valid amount.');
+                    return;
+                }
+
+                if (currentDues <= 0) {
+                    showToast('No outstanding dues to pay.');
+                    return;
+                }
+
+                if (amountToPay > walletBal) {
+                    showToast('Insufficient Wallet Balance. Please Add Money.');
+                    return;
+                }
+
+                if (amountToPay > currentDues) {
+                    showToast('Amount exceeds outstanding dues.');
+                    return;
+                }
+
+                this.state.isLoading = true;
+                this.render();
+                setTimeout(() => {
+                    this.state.isLoading = false;
+                    this.state.walletBalance -= amountToPay;
+                    this.state.outstandingDues -= amountToPay;
+                    this.state.walletTransactions.unshift({
+                        id: Date.now(),
+                        type: 'debit',
+                        amount: amountToPay,
+                        date: 'Just now',
+                        desc: 'Commission Dues Payment'
+                    });
+                    
+                    // --- BACKEND PLACEHOLDER: Send payment transaction to server ---
+
+                    if (this.state.outstandingDues <= 300 && !this.state.isOnline) {
+                        // Unblocked
+                    }
+
+                    this.render();
+                    showToast(`Paid ₹${amountToPay}. Dues cleared successfully!`);
+                }, 1000);
+            },
+
+            selectVehicleType(type) {
+                this.state.regData.vehicleType = type;
+                this.render();
+            },
+
+            setTshirtSize(size) {
+                this.state.regData.tshirtSize = size;
+                this.render();
+            },
+
+            updateRegField(key, value) {
+                this.state.regData[key] = value;
+            },
+
+            updateLoginOtp(value) {
+                this.state.loginOtp = value;
+            },
+
+            updateDeliveryOtp(value) {
+                this.state.deliveryOtp = value;
+            },
+
+            async handleFileUpload(type, event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // Show local preview immediately for photos
+                if (type === 'facePhoto') {
+                    this.state.regData[type] = URL.createObjectURL(file);
+                    this.render();
+                }
+
+                // --- BACKEND PLACEHOLDER: Real upload logic here ---
+                // Example:
+                // const formData = new FormData();
+                // formData.append('file', file);
+                // await fetch('/api/upload', { method: 'POST', body: formData });
+                
+                // Simulating Success
+                setTimeout(() => {
+                     this.state.regData[type] = type === 'facePhoto' ? this.state.regData[type] : 'Uploaded';
+                     showToast('File selected (Simulated Upload)');
+                     this.render();
+                }, 500);
+            },
+
+            // --- OTP LOGIN LOGIC ---
+
+            sendOtp(e) {
+                e.preventDefault();
+                const mobile = this.state.regData.mobile;
+
+                if (!mobile || mobile.length < 10) {
+                    showToast('Please enter a valid mobile number');
+                    return;
+                }
+
+                this.state.isLoading = true;
+                this.render();
+                
+                // --- BACKEND PLACEHOLDER: Request OTP from server API ---
+
+                setTimeout(() => {
+                    this.state.isLoading = false;
+                    this.state.loginStep = 2;
+                    this.render();
+                    showToast('OTP sent: 1234 (Demo Code)');
+                    this.speak('enter_otp');
+                }, 1000);
+            },
+
+            async verifyOtp(e) {
+                e.preventDefault();
+                this.state.isLoading = true;
+                this.render();
+
+                // Demo OTP Check
+                if (this.state.loginOtp !== '1234') {
+                    this.state.isLoading = false;
+                    showToast('Invalid OTP. Try 1234');
+                    this.state.loginOtp = '';
+                    this.render();
+                    return;
+                }
+                
+                // --- BACKEND PLACEHOLDER: Verify OTP with server and get token ---
+                // await fetch('/api/login', { ... });
+
+                // SIMULATING SUCCESSFUL LOGIN
+                setTimeout(() => {
+                    this.state.isLoading = false;
+                    this.state.view = 'dashboard';
+                    // Restore simulated user name
+                    if (!this.state.regData.fullName) this.state.regData.fullName = "Partner";
+                    
+                    this.render();
+                    showToast('Verified! Welcome back, ' + this.state.regData.fullName);
+                    this.speak('welcome_back');
+                }, 1000);
+            },
+
+            changeNumber() {
+                this.state.loginStep = 1;
+                this.state.loginOtp = '';
+                this.render();
+            },
+
+            resendOtp() {
+                showToast('OTP Resent: 1234');
+            },
+
+            async register(e) {
+                if (e) e.preventDefault();
+
+                // Simple Validation to prevent empty submissions
+                if (!this.state.regData.fullName || !this.state.regData.mobile || !this.state.regData.vehicleNumber) {
+                    showToast('Please fill in Name, Mobile, and Vehicle Number');
+                    return;
+                }
+
+                this.state.isLoading = true;
+                this.render();
+
+                // Map Frontend Data to Backend Entity
+                const payload = {
+                    name: this.state.regData.fullName,
+                    phoneNumber: this.state.regData.mobile,
+                    email: this.state.regData.mobile + "@driver.com", 
+                    password: "password123",
+                    photoUrl: this.state.regData.facePhoto
+                };
+                
+                // --- BACKEND PLACEHOLDER: Submit Registration Form ---
+                // await fetch('/api/register', { body: JSON.stringify(payload) ... });
+
+                // SIMULATING REGISTRATION SUCCESS
+                setTimeout(() => {
+                    console.log('Registered (Simulated):', payload);
+                    this.state.isLoading = false;
+                    this.state.view = 'dashboard';
+                    this.render();
+                    showToast('Application Submitted & Account Created!');
+                }, 1500);
+            },
+
+            logout() {
+                this.state.view = 'welcome';
+                this.state.tab = 'home';
+                this.state.isOnline = false;
+                this.state.loginStep = 1;
+                this.state.loginOtp = '';
+                this.render();
+            },
+
+            setTab(tab) {
+                this.state.tab = tab;
+                this.speak(tab); // Speak tab name
+                this.render();
+
+                if (tab === 'trips' && this.state.trips.length > 0) {
+                    setTimeout(() => this.initLeafletMap(this.state.trips[0]), 100);
+                }
+            },
+
+            toggleOnline() {
+                if (!this.state.isOnline && this.state.outstandingDues > 300) {
+                    showToast('Account Suspended: Dues exceed ₹300. Please clear dues.');
+                    return;
+                }
+
+                this.state.isOnline = !this.state.isOnline;
+                
+                // --- BACKEND PLACEHOLDER: Update driver online status on server ---
+                
+                this.render();
+                showToast(this.state.isOnline ? 'You are now Online' : 'You are Offline');
+            },
+
+            declineOrder(id) {
+                if (!this.state.isOnline) {
+                    showToast('Go Online to manage orders');
+                    return;
+                }
+                const orderEl = document.getElementById(`order-${id}`);
+                if (orderEl) {
+                    orderEl.style.transform = 'translateX(100%)';
+                    orderEl.style.opacity = '0';
+                    setTimeout(() => {
+                        this.state.orders = this.state.orders.filter(o => o.id !== id);
+                        this.render();
+                        showToast('Order Declined');
+                    }, 300);
+                }
+            },
+
+            acceptOrder(id) {
+                if (!this.state.isOnline) {
+                    showToast('Please Go Online to accept orders');
+                    return;
+                }
+                const order = this.state.orders.find(o => o.id === id);
+                this.state.orders = this.state.orders.filter(o => o.id !== id);
+                this.state.trips.push({ ...order, status: 'active', step: 0 });
+                this.state.tab = 'trips';
+                this.render();
+                setTimeout(() => this.initLeafletMap(order), 100);
+                showToast('Order Accepted! Heading to pickup.');
+            },
+
+            advanceTrip(id) {
+                const trip = this.state.trips.find(t => t.id === id);
+
+                if (trip && trip.step === 1) {
+                    this.state.activeTripId = id;
+                    this.state.deliveryOtp = '';
+                    this.openModal('deliveryOtp');
+                    return;
+                }
+
+                this.state.trips = this.state.trips.map(t => {
+                    if (t.id === id) {
+                        if (t.step === 0) return { ...t, step: 1 };
+                    }
+                    return t;
+                });
+
+                showToast('Pickup Confirmed! Heading to drop location.');
+                this.render();
+
+                setTimeout(() => this.initLeafletMap(this.state.trips[0]), 100);
+            },
+
+            verifyDeliveryOtp() {
+                const id = this.state.activeTripId;
+                const otp = this.state.deliveryOtp;
+
+                if (otp === '4567') {
+                    const trip = this.state.trips.find(t => t.id === id);
+
+                    if (trip) {
+                        const now = new Date();
+                        const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+                        this.state.pastTrips.unshift({
+                            id: Date.now(),
+                            date: `Today, ${time}`,
+                            amount: trip.payout,
+                            type: trip.type,
+                            status: 'Completed'
+                        });
+
+                        this.state.walletBalance += trip.payout;
+                        this.state.walletTransactions.unshift({
+                            id: Date.now() + 1,
+                            type: 'credit',
+                            amount: trip.payout,
+                            date: 'Just now',
+                            desc: `Earnings for Order #${trip.id}`
+                        });
+
+                        const commission = Math.floor(trip.payout * 0.10); // 10%
+                        this.state.outstandingDues += commission;
+
+                        if (this.state.outstandingDues > 300) {
+                            this.state.isOnline = false;
+                            showToast(`Order Complete. ALERT: Dues Exceeded ₹300. Account Offline.`);
+                        } else {
+                            showToast(`Order Complete! Earnings ₹${trip.payout} added to wallet.`);
+                        }
+                    }
+
+                    this.state.trips = this.state.trips.map(t => {
+                        if (t.id === id) return { ...t, status: 'completed' };
+                        return t;
+                    }).filter(t => t.status !== 'completed');
+
+                    this.closeModal();
+
+                    if (this.state.trips.length === 0) {
+                        this.state.tab = 'home';
+                    }
+                    
+                    // --- BACKEND PLACEHOLDER: Send trip completion data to server ---
+                    
+                    this.render();
+                } else {
+                    showToast('Incorrect Delivery PIN. Try 4567');
+                }
+            },
+
+            // --- INTERACTION ACTIONS ---
+            callCustomer() {
+                showToast('Calling Customer... (Demo)');
+            },
+
+            openNavigation() {
+                showToast('Opening Google Maps... (Demo)');
+            },
+
+            openModal(type) {
+                const modal = document.getElementById('modal-overlay');
+                const content = document.getElementById('modal-content');
+                modal.classList.remove('hidden');
+
+                if (type === 'deliveryOtp') {
+                    content.innerHTML = `
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-brand-100 dark:bg-brand-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-600 dark:text-brand-400">
+                                ${getIcon('lock', 32)}
+                            </div>
+                            <h2 class="text-2xl font-bold mb-2 dark:text-white">Delivery Verification</h2>
+                            <p class="text-slate-500 dark:text-slate-400 mb-6 text-sm">Ask the customer for the 4-digit PIN to complete the delivery.</p>
+                            
+                            <div class="mb-6">
+                                <input type="tel" maxlength="4" 
+                                    class="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl py-4 text-center text-3xl font-black tracking-[0.5em] focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white transition-all" 
+                                    placeholder="••••" 
+                                    oninput="App.updateDeliveryOtp(this.value)"
+                                    autofocus
+                                />
+                                <p class="text-xs font-bold text-slate-400 mt-2">Demo PIN: 4567</p>
+                            </div>
+
+                            <button onclick="App.verifyDeliveryOtp()" class="w-full py-4 bg-brand-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-brand-500/30 active:scale-95 transition-transform">
+                                Verify & Complete
+                            </button>
+                            <button onclick="App.closeModal()" class="w-full mt-3 py-3 text-slate-500 font-bold hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+                                Cancel
+                            </button>
+                        </div>
+                    `;
+                } else if (type === 'vehicle') {
+                    content.innerHTML = `
+                        <h2 class="text-xl font-bold mb-4 dark:text-white">${this.t('vehicle_info')}</h2>
+                        <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 space-y-3">
+                            <div>
+                                <label class="text-xs text-slate-400 font-bold uppercase">${this.t('vehicle_details')}</label>
+                                <div class="flex items-center gap-2 text-slate-900 dark:text-white font-medium capitalize">
+                                    ${getIcon('bike', 20)} ${this.state.regData.vehicleType}
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-400 font-bold uppercase">${this.t('vehicle_number')}</label>
+                                <div class="text-slate-900 dark:text-white font-medium text-lg">${this.state.regData.vehicleNumber || 'Not Set'}</div>
+                            </div>
+                        </div>
+                        <button onclick="App.closeModal()" class="w-full mt-6 py-3 bg-brand-600 text-white rounded-xl font-bold">Close</button>
+                    `;
+                } else if (type === 'docs') {
+                    const renderDoc = (name, file) => `
+                        <div class="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
+                            <div class="flex items-center gap-3">
+                                <div class="${file ? 'text-green-500' : 'text-slate-300'}">${getIcon('check', 18)}</div>
+                                <div>
+                                    <p class="font-bold text-sm dark:text-white">${name}</p>
+                                    <p class="text-xs text-slate-400">${file ? 'Uploaded' : 'Pending Upload'}</p>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 ${file ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 text-slate-500'} text-[10px] font-bold rounded uppercase">${file ? 'Active' : 'Missing'}</span>
+                        </div>
+                    `;
+                    content.innerHTML = `
+                        <h2 class="text-xl font-bold mb-4 dark:text-white">${this.t('documents')}</h2>
+                        <div class="space-y-3">
+                            ${renderDoc(this.t('driving_license'), this.state.regData.licenseFile)}
+                            ${renderDoc(this.t('rc_book'), this.state.regData.rcFile)}
+                            ${renderDoc(this.t('insurance'), this.state.regData.insuranceFile)}
+                            ${renderDoc(this.t('aadhaar'), this.state.regData.aadhaarFile)}
+                        </div>
+                        <button onclick="App.closeModal()" class="w-full mt-6 py-3 bg-brand-600 text-white rounded-xl font-bold">Close</button>
+                    `;
+                } else if (type === 'bank') {
+                    content.innerHTML = `
+                        <h2 class="text-xl font-bold mb-4 dark:text-white">${this.t('bank_acct')}</h2>
+                        <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white p-5 rounded-2xl shadow-lg mb-4">
+                            <div class="flex justify-between items-start mb-6">
+                                <span class="text-xs font-mono opacity-50">BANK</span>
+                                ${getIcon('card', 24)}
+                            </div>
+                            <div class="font-mono text-xl tracking-widest mb-4">•••• •••• •••• ${this.state.regData.bankAccount ? this.state.regData.bankAccount.slice(-4) : '0000'}</div>
+                            <div class="flex justify-between text-xs opacity-75">
+                                <span>${(this.state.regData.fullName || 'Partner').toUpperCase()}</span>
+                                <span>--/--</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-sm font-medium">
+                            ${getIcon('check', 16)} ${this.state.regData.bankAccount ? 'Verified for Payouts' : 'No Account Linked'}
+                        </div>
+                         <button onclick="App.closeModal()" class="w-full mt-6 py-3 bg-brand-600 text-white rounded-xl font-bold">Done</button>
+                    `;
+                }
+            },
+
+            closeModal() {
+                document.getElementById('modal-overlay').classList.add('hidden');
+            },
+
+            // --- MAP ---
+            initLeafletMap(trip) {
+                const mapId = `map-container-${trip.id}`;
+                const container = document.getElementById(mapId);
+
+                if (!container) return;
+
+                if (this.state.activeMap) {
+                    this.state.activeMap.remove();
+                    this.state.activeMap = null;
+                }
+
+                const { driver, pickup, drop } = trip.coords;
+                const map = L.map(mapId, { zoomControl: false }).setView(driver, 13);
+
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    attribution: '',
+                    maxZoom: 19
+                }).addTo(map);
+
+                this.state.activeMap = map;
+
+                const createIcon = (iconName, color) => L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div class="marker-pin" style="background-color:${color}">
+                              <div class="marker-icon text-${color}-600">${getIcon(iconName, 16, 'text-black')}</div>
+                           </div>`,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 42]
+                });
+
+                const driverIcon = createIcon('bike', '#06b6d4');
+                const pickupIcon = createIcon('package', '#f59e0b');
+                const dropIcon = createIcon('home', '#10b981');
+
+                if (trip.step === 0) {
+                    L.marker(driver, { icon: driverIcon }).addTo(map).bindPopup("You");
+                    L.marker(pickup, { icon: pickupIcon }).addTo(map).bindPopup("Pickup");
+                    L.polyline([driver, pickup], { color: '#06b6d4', weight: 4, dashArray: '10, 10' }).addTo(map);
+                    map.fitBounds([driver, pickup], { padding: [50, 50] });
+                } else {
+                    L.marker(pickup, { icon: driverIcon }).addTo(map).bindPopup("You");
+                    L.marker(drop, { icon: dropIcon }).addTo(map).bindPopup("Drop");
+                    L.polyline([pickup, drop], { color: '#06b6d4', weight: 4 }).addTo(map);
+                    map.fitBounds([pickup, drop], { padding: [50, 50] });
+                }
+            },
+
+            // --- RENDERING LOGIC ---
+
+            render() {
+                const app = document.getElementById('app');
+
+                if (this.state.view === 'welcome') {
+                    app.innerHTML = this.renderWelcome();
+                } else if (this.state.view === 'login') {
+                    app.innerHTML = this.renderLogin();
+                } else if (this.state.view === 'register') {
+                    app.innerHTML = this.renderRegister();
+                } else if (this.state.view === 'earnings') {
+                    app.innerHTML = this.renderEarnings();
+                } else if (this.state.view === 'wallet') {
+                    app.innerHTML = this.renderWallet();
+                } else {
+                    app.innerHTML = this.renderDashboard();
+                }
+            },
+
+            renderWelcome() {
+                // Trigger speech on welcome screen load if not already spoken
+                setTimeout(() => this.speak('app_name'), 500);
+
+                return `
+                    <div class="h-full flex flex-col justify-center items-center relative bg-white dark:bg-dark-bg fade-in px-6">
+                        <div class="absolute top-6 right-6 flex gap-3">
+                             <button onclick="App.toggleLangModal()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+                                ${getIcon('globe', 20)}
+                            </button>
+                            ${this.renderThemeToggle()}
+                        </div>
+                        <div class="w-24 h-24 bg-gradient-to-br from-brand-400 to-brand-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-brand-500/40 text-white font-black text-5xl transform rotate-3 mb-10">QC</div>
+                        <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-3 text-center">${this.t('app_name')}</h1>
+                        <p class="text-slate-500 dark:text-slate-400 text-center text-lg mb-12 max-w-xs leading-relaxed">${this.t('welcome_subtitle')}</p>
+                        
+                        <button onclick="App.setView('login')" class="w-full py-4 rounded-2xl font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-xl shadow-brand-500/30 text-lg transition-transform active:scale-95">
+                            ${this.t('login_btn')}
+                        </button>
+                    </div>
+                `;
+            },
+
+            renderLogin() {
+                const isStep1 = this.state.loginStep === 1;
+
+                return `
+                    <div class="h-full flex flex-col px-6 relative bg-white dark:bg-dark-bg slide-up overflow-y-auto">
+                        <div class="absolute top-6 left-0 px-4 w-full flex justify-between items-center z-10">
+                            <button onclick="App.setView('welcome')" class="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                ${getIcon('arrowLeft', 24)}
+                            </button>
+                            ${this.renderThemeToggle()}
+                        </div>
+                        
+                        <div class="flex-1 flex flex-col justify-center items-center mt-10">
+                            <h1 class="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                                ${isStep1 ? this.t('welcome_back') : this.t('verify_details')}
+                            </h1>
+                            <p class="text-slate-500 dark:text-slate-400 text-center max-w-xs">
+                                ${isStep1 ? this.t('enter_mobile') : `${this.t('enter_otp')} <br><span class="text-slate-900 dark:text-white font-bold">+91 ${this.state.regData.mobile}</span>`}
+                            </p>
+                        </div>
+
+                        <form onsubmit="${isStep1 ? 'App.sendOtp(event)' : 'App.verifyOtp(event)'}" class="w-full mb-8 space-y-4">
+                            
+                            <!-- STEP 1: MOBILE INPUT -->
+                            ${isStep1 ? `
+                            <div class="space-y-1 slide-up">
+                                <label class="text-xs font-bold uppercase text-slate-400 tracking-wider ml-1">${this.t('mobile_label')}</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-3.5 text-slate-400 font-medium">+91</span>
+                                    <input required type="tel" maxlength="10" 
+                                        class="w-full bg-slate-50 dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3.5 pl-12 pr-4 font-semibold text-lg focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white transition-all" 
+                                        placeholder="Mobile Number" 
+                                        value="${this.state.regData.mobile}"
+                                        oninput="App.updateRegField('mobile', this.value)"
+                                    />
+                                </div>
+                            </div>
+                            ` : ''}
+
+                            <!-- STEP 2: OTP INPUT -->
+                            ${!isStep1 ? `
+                            <div class="space-y-1 slide-up">
+                                <label class="text-xs font-bold uppercase text-slate-400 tracking-wider ml-1">${this.t('otp_label')}</label>
+                                <div class="relative">
+                                    <div class="absolute left-4 top-3.5 text-slate-400">${getIcon('lock', 20)}</div>
+                                    <input required type="tel" maxlength="4" 
+                                        class="w-full bg-slate-50 dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3.5 pl-12 pr-4 font-mono font-bold text-xl tracking-[0.5em] focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white transition-all text-center" 
+                                        placeholder="••••" 
+                                        value="${this.state.loginOtp}"
+                                        oninput="App.updateLoginOtp(this.value)"
+                                        autofocus
+                                    />
+                                </div>
+                                <div class="flex justify-between items-center pt-2 px-1">
+                                    <button type="button" onclick="App.changeNumber()" class="text-xs font-bold text-slate-500 hover:text-brand-600">${this.t('change_number')}</button>
+                                    <button type="button" onclick="App.resendOtp()" class="text-xs font-bold text-brand-600 hover:text-brand-700">${this.t('resend_otp')}</button>
+                                </div>
+                            </div>
+                            ` : ''}
+
+                            <div class="pt-4">
+                                <button type="submit" class="w-full py-3.5 rounded-2xl font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2 transition-all active:scale-95">
+                                    ${this.state.isLoading
+                        ? getIcon('loader', 20, 'animate-spin')
+                        : (isStep1 ? this.t('get_otp') : this.t('verify_login'))}
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="pb-8 text-center">
+                            <p class="text-slate-500 dark:text-slate-400">${this.t('new_partner')} <button onclick="App.setView('register')" class="text-brand-600 font-bold hover:underline">${this.t('create_account')}</button></p>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderRegister() {
+                const vTypes = [
+                    { id: '2wheeler', label: 'Bike', icon: 'bike' },
+                    { id: '3wheeler', label: 'Auto', icon: 'truck' },
+                    { id: '4wheeler', label: 'Car', icon: 'car' },
+                    { id: 'tempo', label: 'Tempo', icon: 'truck' },
+                    { id: 'truck', label: 'Truck', icon: 'truck' }
+                ];
+
+                // Removed 'required' from the hidden input below to prevent browser validation blocking submission silently
+                const renderUploadField = (id, label, currentFile) => `
+                    <div class="bg-white dark:bg-dark-surface p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="font-bold text-slate-700 dark:text-slate-200">${label}</label>
+                            ${currentFile ? '<span class="text-green-500 text-xs font-bold flex items-center gap-1">' + getIcon('check', 12) + ' Attached</span>' : ''}
+                        </div>
+                        <label class="block w-full cursor-pointer">
+                            <input type="file" accept="image/*,application/pdf" class="hidden" onchange="App.handleFileUpload('${id}', event)" />
+                            <div class="w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                ${currentFile ? getIcon('file', 20, 'text-brand-500') : getIcon('upload', 20)}
+                                <span class="text-sm font-medium truncate px-2 max-w-[200px]">${currentFile || 'Upload Photo or PDF'}</span>
+                            </div>
+                        </label>
+                    </div>
+                `;
+
+                return `
+                    <div class="h-full flex flex-col bg-slate-50 dark:bg-dark-bg slide-up overflow-hidden">
+                        <div class="px-6 pt-safe-top pb-4 bg-white dark:bg-dark-surface border-b border-slate-100 dark:border-slate-800 z-10 flex items-center gap-4">
+                            <button onclick="App.setView('login')" class="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                ${getIcon('arrowLeft', 24)}
+                            </button>
+                            <h1 class="text-xl font-bold text-slate-900 dark:text-white">${this.t('register_title')}</h1>
+                        </div>
+                        <div class="flex-1 overflow-y-auto px-6 py-6 no-scrollbar">
+                            <form onsubmit="App.register(event)" class="space-y-8">
+                                
+                                <!-- Profile Photo Upload -->
+                                <div class="flex flex-col items-center justify-center mb-6">
+                                    <div class="relative group">
+                                        <div class="w-28 h-28 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden border-4 border-white dark:border-slate-600 shadow-xl">
+                                            ${this.state.regData.facePhoto
+                        ? `<img src="${this.state.regData.facePhoto}" class="w-full h-full object-cover" />`
+                        : getIcon('camera', 40, 'text-slate-400')}
+                                        </div>
+                                        <label class="absolute bottom-0 right-0 bg-brand-600 text-white p-2.5 rounded-full shadow-lg cursor-pointer hover:bg-brand-700 transition-colors active:scale-90">
+                                            ${getIcon('upload', 18)}
+                                            <input type="file" accept="image/*" class="hidden" onchange="App.handleFileUpload('facePhoto', event)" />
+                                        </label>
+                                    </div>
+                                    <p class="mt-3 text-sm font-bold text-slate-500 dark:text-slate-400">${this.t('upload_photo')}</p>
+                                </div>
+
+                                <!-- Personal Details -->
+                                <div class="space-y-4">
+                                    <h3 class="text-sm font-bold uppercase text-slate-400 tracking-wider">${this.t('personal_details')}</h3>
+                                    <input required type="text" class="w-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white" 
+                                        placeholder="${this.t('full_name')}" value="${this.state.regData.fullName}" oninput="App.updateRegField('fullName', this.value)" />
+                                    
+                                    <input required type="tel" class="w-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white" 
+                                        placeholder="${this.t('mobile_label')}" value="${this.state.regData.mobile}" oninput="App.updateRegField('mobile', this.value)" />
+                                    
+                                    <input required type="tel" class="w-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white" 
+                                        placeholder="${this.t('emergency_contact')}" value="${this.state.regData.emergencyContact}" oninput="App.updateRegField('emergencyContact', this.value)" />
+                                    
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <select class="w-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white"
+                                            onchange="App.updateRegField('bloodGroup', this.value)">
+                                            <option value="" disabled ${!this.state.regData.bloodGroup ? 'selected' : ''}>${this.t('blood_group')}</option>
+                                            ${['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(bg => `<option value="${bg}" ${this.state.regData.bloodGroup === bg ? 'selected' : ''}>${bg}</option>`).join('')}
+                                        </select>
+                                        <input type="date" class="w-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white" 
+                                            value="${this.state.regData.dob}" onchange="App.updateRegField('dob', this.value)" />
+                                    </div>
+                                </div>
+
+                                <!-- Work Preferences -->
+                                <div class="space-y-4">
+                                    <h3 class="text-sm font-bold uppercase text-slate-400 tracking-wider">${this.t('work_pref')}</h3>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">${this.t('pref_zone')}</label>
+                                        <select class="w-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white"
+                                            onchange="App.updateRegField('preferredZone', this.value)">
+                                            ${['North Chennai', 'South Chennai', 'Central Chennai', 'OMR / ECR', 'West Chennai'].map(zone => `<option value="${zone}" ${this.state.regData.preferredZone === zone ? 'selected' : ''}>${zone}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">${this.t('tshirt_size')}</label>
+                                        <div class="flex gap-2">
+                                            ${['S', 'M', 'L', 'XL', 'XXL'].map(size => `
+                                                <button type="button" onclick="App.setTshirtSize('${size}')" 
+                                                    class="flex-1 py-2 rounded-xl border-2 font-bold text-sm transition-all ${this.state.regData.tshirtSize === size ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-600' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-surface text-slate-500 dark:text-slate-400'}">
+                                                    ${size}
+                                                </button>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Vehicle Details -->
+                                <div class="space-y-4">
+                                    <h3 class="text-sm font-bold uppercase text-slate-400 tracking-wider">${this.t('vehicle_details')}</h3>
+                                    <div class="grid grid-cols-3 gap-3">
+                                        ${vTypes.map(v => `
+                                            <button type="button" onclick="App.selectVehicleType('${v.id}')" 
+                                                class="flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all ${this.state.regData.vehicleType === v.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-600' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-surface text-slate-500 dark:text-slate-400'}">
+                                                ${getIcon(v.icon, 24, 'mb-2')}
+                                                <span class="text-xs font-bold">${v.label}</span>
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                    <input required type="text" class="w-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white uppercase font-semibold" 
+                                        placeholder="${this.t('vehicle_number')}" value="${this.state.regData.vehicleNumber}" oninput="App.updateRegField('vehicleNumber', this.value)" />
+                                </div>
+
+                                <!-- Documents Upload -->
+                                <div class="space-y-4">
+                                    <h3 class="text-sm font-bold uppercase text-slate-400 tracking-wider">${this.t('documents_kyc')}</h3>
+                                    ${renderUploadField('licenseFile', this.t('driving_license'), this.state.regData.licenseFile)}
+                                    ${renderUploadField('rcFile', this.t('rc_book'), this.state.regData.rcFile)}
+                                    ${renderUploadField('insuranceFile', this.t('insurance'), this.state.regData.insuranceFile)}
+                                    ${renderUploadField('aadhaarFile', this.t('aadhaar'), this.state.regData.aadhaarFile)}
+                                </div>
+
+                                <!-- Bank Details -->
+                                <div class="space-y-4">
+                                    <h3 class="text-sm font-bold uppercase text-slate-400 tracking-wider">${this.t('bank_details')}</h3>
+                                    <input required type="text" class="w-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white uppercase" 
+                                        placeholder="${this.t('ifsc')}" value="${this.state.regData.ifsc}" oninput="App.updateRegField('ifsc', this.value)" />
+                                    
+                                    <input required type="tel" class="w-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white" 
+                                        placeholder="${this.t('account_num')}" value="${this.state.regData.bankAccount}" oninput="App.updateRegField('bankAccount', this.value)" />
+                                    
+                                    <input required type="tel" class="w-full bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-white" 
+                                        placeholder="${this.t('confirm_account')}" value="${this.state.regData.confirmBankAccount}" oninput="App.updateRegField('confirmBankAccount', this.value)" />
+                                </div>
+
+                                <!-- Referral -->
+                                <div class="space-y-4">
+                                    <h3 class="text-sm font-bold uppercase text-slate-400 tracking-wider">${this.t('referral')}</h3>
+                                    <div class="flex items-center gap-2 bg-white dark:bg-dark-surface border border-slate-200 dark:border-dark-border rounded-2xl py-3 px-4">
+                                        ${getIcon('gift', 20, 'text-brand-500')}
+                                        <input type="text" class="w-full bg-transparent border-none focus:ring-0 dark:text-white" 
+                                            placeholder="${this.t('referral_code')}" value="${this.state.regData.referralCode}" oninput="App.updateRegField('referralCode', this.value)" />
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 pb-10">
+                                    <button type="submit" class="w-full py-4 rounded-2xl font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-500/30 flex items-center justify-center gap-2 text-lg">
+                                        ${this.state.isLoading ? getIcon('loader', 24, 'animate-spin') : this.t('submit_app')}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderEarnings() {
+                const total = this.state.pastTrips.reduce((acc, curr) => acc + curr.amount, 0);
+                return `
+                    <div class="h-full flex flex-col bg-slate-50 dark:bg-dark-bg slide-up overflow-hidden">
+                        <!-- Header -->
+                        <div class="px-6 pt-safe-top pb-4 bg-white dark:bg-dark-surface border-b border-slate-100 dark:border-slate-800 z-10 flex items-center gap-4">
+                            <button onclick="App.setView('dashboard')" class="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                ${getIcon('arrowLeft', 24)}
+                            </button>
+                            <h1 class="text-xl font-bold text-slate-900 dark:text-white">${this.t('earnings_history')}</h1>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto px-4 py-6 no-scrollbar">
+                            <!-- Summary Card -->
+                            <div class="bg-gradient-to-br from-brand-600 to-brand-800 rounded-3xl p-6 text-white shadow-xl shadow-brand-500/20 mb-8 relative overflow-hidden">
+                                 <div class="relative z-10">
+                                    <p class="text-brand-100 text-sm font-bold uppercase tracking-wider mb-1">${this.t('total_earnings')}</p>
+                                    <h2 class="text-4xl font-black">₹${total.toLocaleString()}</h2>
+                                    <div class="mt-4 flex gap-4">
+                                        <div class="bg-white/10 rounded-lg px-3 py-1.5 backdrop-blur-sm">
+                                            <span class="text-xs text-brand-100 block">${this.t('trips')}</span>
+                                            <span class="font-bold">${this.state.pastTrips.length}</span>
+                                        </div>
+                                        <div class="bg-white/10 rounded-lg px-3 py-1.5 backdrop-blur-sm">
+                                            <span class="text-xs text-brand-100 block">${this.t('bonus')}</span>
+                                            <span class="font-bold">₹0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="absolute right-[-20px] bottom-[-20px] text-white/10">
+                                    ${getIcon('card', 120)}
+                                </div>
+                            </div>
+
+                            <!-- List -->
+                            <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-4 px-2">${this.t('recent_trips')}</h3>
+                            <div class="space-y-3">
+                                ${this.state.pastTrips.length > 0 ? this.state.pastTrips.map(trip => `
+                                    <div class="bg-white dark:bg-dark-surface p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex justify-between items-center shadow-sm">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-600 dark:text-green-400">
+                                                ${getIcon('check', 20)}
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold text-slate-900 dark:text-white text-sm">${trip.type}</h4>
+                                                <p class="text-xs text-slate-500 dark:text-slate-400">${trip.date}</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="block font-black text-slate-900 dark:text-white">₹${trip.amount}</span>
+                                            <span class="text-[10px] font-bold text-green-500 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded">${this.t('paid')}</span>
+                                        </div>
+                                    </div>
+                                `).join('') : '<div class="text-center text-slate-400 py-10">No past trips found.</div>'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderWallet() {
+                const bal = this.state.walletBalance;
+                const dues = this.state.outstandingDues;
+                const isLimitReached = dues > 300;
+                const isLow = bal < 0;
+
+                return `
+                    <div class="h-full flex flex-col bg-slate-50 dark:bg-dark-bg slide-up overflow-hidden">
+                        <!-- Header -->
+                        <div class="px-6 pt-safe-top pb-4 bg-white dark:bg-dark-surface border-b border-slate-100 dark:border-slate-800 z-10 flex items-center gap-4">
+                            <button onclick="App.setView('dashboard')" class="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+                                ${getIcon('arrowLeft', 24)}
+                            </button>
+                            <h1 class="text-xl font-bold text-slate-900 dark:text-white">${this.t('wallet_title')}</h1>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto px-4 py-6 no-scrollbar">
+                            <!-- Balance Card -->
+                            <div class="bg-slate-900 dark:bg-slate-800 rounded-3xl p-6 text-white shadow-xl mb-4 relative overflow-hidden">
+                                <div class="relative z-10">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <p class="text-slate-400 text-sm font-bold uppercase tracking-wider">${this.t('wallet_bal')}</p>
+                                        <button onclick="App.addMoney()" class="bg-white/20 hover:bg-white/30 rounded-lg px-3 py-1 text-xs font-bold transition-colors">
+                                            + ${this.t('add_money')}
+                                        </button>
+                                    </div>
+                                    <h2 class="text-5xl font-black mb-1">₹${bal.toFixed(0)}</h2>
+                                    <p class="text-slate-500 text-xs">${this.t('used_for_comm')}</p>
+                                </div>
+                                <div class="absolute -right-6 -bottom-6 text-white/5 opacity-10">
+                                    ${getIcon('wallet', 120)}
+                                </div>
+                            </div>
+
+                            <!-- Outstanding Dues Section -->
+                            <div class="bg-white dark:bg-dark-surface rounded-3xl p-6 border-2 ${isLimitReached ? 'border-red-500' : 'border-slate-100 dark:border-slate-700'} shadow-sm mb-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">${this.t('pending_comm')}</p>
+                                        <h3 class="text-3xl font-black text-slate-900 dark:text-white">₹${dues.toFixed(0)}</h3>
+                                        <p class="text-[10px] text-red-500 font-bold mt-1 ${isLimitReached ? 'animate-pulse' : ''}">
+                                            ${isLimitReached ? this.t('limit_exceeded') : this.t('limit_normal')}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Payment Input Section -->
+                                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">${this.t('enter_pay_amount')}</label>
+                                    <div class="flex gap-2">
+                                        <div class="relative flex-1">
+                                            <span class="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                                            <input id="customPayAmount" type="number" 
+                                                class="w-full pl-6 pr-3 py-2.5 rounded-lg font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                                value="${Math.ceil(dues)}" 
+                                                placeholder="0"
+                                                min="1" max="${Math.ceil(dues)}"
+                                            />
+                                        </div>
+                                        <button onclick="App.payDues(document.getElementById('customPayAmount').value)" 
+                                            class="bg-brand-600 hover:bg-brand-700 text-white rounded-lg px-4 py-2.5 font-bold shadow-lg shadow-brand-500/30 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                                            ${dues <= 0 ? 'disabled' : ''}>
+                                            ${this.t('pay')}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                ${isLimitReached ? `
+                                    <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold p-3 rounded-xl border border-red-100 dark:border-red-900/50 flex items-center gap-2 mt-4">
+                                        ${getIcon('lock', 16)} ${this.t('acct_suspended')}
+                                    </div>
+                                ` : `
+                                    <div class="text-xs text-slate-400 dark:text-slate-500 mt-3">
+                                        ${this.t('pay_dues_hint')}
+                                    </div>
+                                `}
+                            </div>
+
+                            <!-- Transactions -->
+                            <h3 class="font-bold text-lg text-slate-800 dark:text-white mb-4 px-2">${this.t('recent_trans')}</h3>
+                            <div class="space-y-3 pb-8">
+                                ${this.state.walletTransactions.map(t => {
+                    const isCredit = t.type === 'credit';
+                    return `
+                                    <div class="bg-white dark:bg-dark-surface p-4 rounded-2xl border border-slate-100 dark:border-slate-700 flex justify-between items-center shadow-sm">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-10 h-10 rounded-full ${isCredit ? 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400'} flex items-center justify-center">
+                                                ${getIcon(isCredit ? 'plus' : 'wallet', 20)}
+                                            </div>
+                                            <div>
+                                                <h4 class="font-bold text-slate-900 dark:text-white text-sm line-clamp-1">${t.desc}</h4>
+                                                <p class="text-xs text-slate-500 dark:text-slate-400">${t.date}</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="block font-black ${isCredit ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${isCredit ? '+' : '-'} ₹${t.amount}</span>
+                                        </div>
+                                    </div>
+                                    `;
+                }).join('')}
+                                ${this.state.walletTransactions.length === 0 ? '<div class="text-center text-slate-400 py-4">No transactions yet.</div>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderDashboard() {
+                const isTaskPage = this.state.tab === 'trips' && this.state.trips.length > 0;
+                if (isTaskPage) return this.renderTaskPage(this.state.trips[0]);
+
+                return `
+                    <div class="h-full flex flex-col bg-slate-50 dark:bg-dark-bg transition-colors">
+                        <header class="fixed top-0 w-full z-30 glass border-b border-slate-200/50 dark:border-slate-800/50 pt-safe-top">
+                            <div class="px-4 h-16 flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-brand-400 to-brand-600 rounded-lg flex items-center justify-center shadow-lg text-white font-black text-xs transform rotate-3">QC</div>
+                                    <div>
+                                        <h1 class="font-bold text-slate-800 dark:text-white leading-none text-sm">Hi, ${this.state.regData.fullName ? this.state.regData.fullName.split(' ')[0] : 'Partner'}</h1>
+                                        <div class="flex items-center gap-1 mt-1">
+                                            <span class="w-2 h-2 rounded-full ${this.state.isOnline ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}"></span>
+                                            <span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase">${this.state.isOnline ? this.t('online') : this.t('offline')}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <button onclick="App.toggleOnline()" class="h-9 px-3 rounded-full flex items-center gap-2 text-xs font-bold transition-all ${this.state.isOnline ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}">
+                                        ${getIcon('power', 14)} ${this.state.isOnline ? 'ON' : 'OFF'}
+                                    </button>
+                                    ${this.renderThemeToggle()}
+                                </div>
+                            </div>
+                        </header>
+
+                        <main class="flex-1 overflow-y-auto pt-20 pb-24 px-4 no-scrollbar">
+                            ${this.renderContent()}
+                        </main>
+
+                        <nav class="fixed bottom-0 w-full glass border-t border-slate-200/50 dark:border-slate-800/50 pb-safe z-30">
+                            <div class="flex justify-around items-center h-16">
+                                ${this.renderNavBtn('home', this.t('home'), 'home')}
+                                ${this.renderNavBtn('trips', this.t('trips'), 'nav', this.state.trips.length)}
+                                ${this.renderNavBtn('profile', this.t('profile'), 'user')}
+                            </div>
+                        </nav>
+                    </div>
+                `;
+            },
+
+            renderTaskPage(trip) {
+                const stepText = trip.step === 0 ? this.t('picking_up') : this.t('delivering');
+                const destAddress = trip.step === 0 ? trip.pickup : trip.address;
+
+                return `
+                    <div class="h-full flex flex-col bg-slate-100 dark:bg-dark-bg relative">
+                        <div class="absolute top-0 left-0 right-0 z-20 pt-safe-top px-4 pointer-events-none">
+                            <div class="mt-4 flex justify-between items-start pointer-events-auto">
+                                <div class="bg-white dark:bg-dark-surface shadow-lg rounded-full py-2 px-4 flex items-center gap-2 border border-slate-100 dark:border-dark-border">
+                                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                    <span class="text-xs font-bold text-slate-700 dark:text-white uppercase tracking-wider">${stepText}</span>
+                                </div>
+                                ${this.renderThemeToggle()}
+                            </div>
+                        </div>
+
+                        <div id="map-container-${trip.id}" class="absolute inset-0 z-0 bg-slate-200 dark:bg-slate-800"></div>
+
+                        <div class="absolute bottom-0 left-0 right-0 z-30 bg-white dark:bg-dark-surface rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)] slide-up pb-safe">
+                            <div class="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mt-3 mb-2"></div>
+                            <div class="px-6 pb-6 pt-2">
+                                <div class="flex justify-between items-start mb-6">
+                                    <div>
+                                        <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-1">24 min <span class="text-lg font-medium text-slate-400">(${trip.distance})</span></h2>
+                                        <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">${destAddress}</p>
+                                    </div>
+                                    <button onclick="App.openNavigation()" class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 hover:scale-105 transition-transform">
+                                        ${getIcon('nav', 24)}
+                                    </button>
+                                </div>
+                                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-6 flex items-center justify-between border border-slate-100 dark:border-slate-700">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 shadow-sm">
+                                            ${getIcon(trip.step === 0 ? 'package' : 'user', 20)}
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-400 uppercase">${trip.step === 0 ? this.t('order_id') : this.t('customer')}</p>
+                                            <p class="font-bold text-slate-900 dark:text-white">#${trip.id}883 • ${trip.type}</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="App.callCustomer()" class="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/20 flex items-center justify-center text-brand-600 dark:text-brand-400 hover:scale-110 transition-transform">
+                                        ${getIcon('phone', 20)}
+                                    </button>
+                                </div>
+                                <button onclick="App.advanceTrip(${trip.id})" class="w-full py-4 rounded-2xl font-black text-lg bg-brand-600 hover:bg-brand-700 text-white shadow-lg shadow-brand-500/30 flex items-center justify-center gap-3 active:scale-[0.98] transition-transform">
+                                    ${trip.step === 0 ? this.t('arrived_pickup') : this.t('complete_delivery')} ${getIcon('arrowRight', 24)}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderContent() {
+                if (this.state.tab === 'home') {
+                    // Empty State for Fresh Account
+                    const emptyState = `
+                        <div class="text-center py-12 text-slate-400 flex flex-col items-center">
+                            ${getIcon('coffee', 48, 'mb-3 opacity-50')}
+                            <p class="font-medium">${this.t('no_active')}</p>
+                            <p class="text-xs mt-2 max-w-xs">New orders will appear here automatically when available from the server.</p>
+                            <button onclick="showToast('Checking for orders...')" class="mt-4 px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-lg text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">${this.t('find_orders')}</button>
+                        </div>
+                    `;
+                    
+                    const ordersHtml = this.state.orders.length ?
+                        this.state.orders.map(o => this.renderOrderCard(o)).join('') :
+                        emptyState;
+
+                    // Celestial body logic
+                    const celestialIcon = this.state.isDark ? getIcon('moon', 40) : getIcon('sun', 40);
+                    const celestialColor = this.state.isDark ? 'text-slate-300' : 'text-yellow-300';
+
+                    return `
+                        <div class="space-y-6 fade-in">
+                            <div onclick="App.setView('earnings')" class="w-full h-48 rounded-3xl overflow-hidden bg-gradient-to-r from-sky-400 to-blue-600 dark:from-slate-800 dark:to-slate-900 relative shadow-xl shadow-blue-500/20 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform">
+                                <!-- Background Sky/Sun/Moon -->
+                                <div class="absolute right-4 top-4 ${celestialColor} animate-pulse transition-colors duration-500">${celestialIcon}</div>
+                                
+                                <!-- Passing Clouds -->
+                                <div class="absolute top-8 left-[-50px] text-white/30 animate-cloud-1">${getIcon('package', 30)}</div> 
+                                <div class="absolute top-12 left-[-80px] text-white/20 animate-cloud-2">${getIcon('package', 40)}</div>
+
+                                <!-- Parallax City Skyline -->
+                                <div class="absolute bottom-16 left-0 w-[200%] h-12 animate-city-slow opacity-30 text-white">
+                                    <svg viewBox="0 0 1000 50" preserveAspectRatio="none" class="w-full h-full">
+                                        <path d="M0,50 L0,20 L20,20 L20,40 L40,40 L40,15 L60,15 L60,45 L80,45 L80,10 L110,10 L110,50 Z" fill="currentColor"/>
+                                        <path d="M120,50 L120,25 L140,25 L140,40 L160,40 L160,10 L190,10 L190,50 Z" fill="currentColor" transform="translate(120,0)"/>
+                                        <path d="M220,50 L220,30 L250,30 L250,50 Z" fill="currentColor" transform="translate(200,0)"/>
+                                        <path d="M300,50 L300,20 L330,20 L330,50 Z" fill="currentColor" transform="translate(200,0)"/>
+                                        <path d="M400,50 L400,15 L440,15 L440,50 Z" fill="currentColor" transform="translate(100,0)"/>
+                                        <path d="M0,50 L0,20 L20,20 L20,40 L40,40 L40,15 L60,15 L60,45 L80,45 L80,10 L110,10 L110,50 Z" fill="currentColor" transform="translate(500,0)"/>
+                                        <path d="M600,50 L600,25 L640,25 L640,50 Z" fill="currentColor" transform="translate(100,0)"/>
+                                    </svg>
+                                </div>
+
+                                <!-- Road -->
+                                <div class="absolute bottom-0 w-full h-16 bg-slate-700 flex items-center overflow-hidden">
+                                    <div class="w-[200%] h-1 bg-transparent border-t-2 border-dashed border-white/50 animate-road-fast absolute top-1/2"></div>
+                                </div>
+
+                                <!-- Truck SVG -->
+                                <div class="absolute bottom-6 left-8 animate-truck-physics z-10">
+                                    <div class="exhaust-puff puff-1"></div>
+                                    <div class="exhaust-puff puff-2"></div>
+                                    <div class="exhaust-puff puff-3"></div>
+
+                                    <svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M10 20 H80 V50 H10 Z" fill="#F8FAFC"/>
+                                        <path d="M80 30 H110 V50 H80 Z" fill="#CBD5E1"/>
+                                        <path d="M80 30 H100 L95 20 H80 Z" fill="#CBD5E1"/>
+                                        <rect x="10" y="30" width="70" height="10" fill="#06B6D4"/>
+                                        <text x="25" y="38" font-size="6" font-weight="bold" fill="white">QC LOGISTICS</text>
+                                        <g class="animate-wheel-spin" style="transform-box: fill-box; transform-origin: center;">
+                                            <circle cx="25" cy="50" r="8" fill="#334155" stroke="#1E293B" stroke-width="2"/>
+                                            <circle cx="25" cy="50" r="3" fill="#94A3B8"/>
+                                            <line x1="25" y1="42" x2="25" y2="58" stroke="#94A3B8" stroke-width="1" />
+                                            <line x1="17" y1="50" x2="33" y2="50" stroke="#94A3B8" stroke-width="1" />
+                                        </g>
+                                        <g class="animate-wheel-spin" style="transform-box: fill-box; transform-origin: center;">
+                                            <circle cx="65" cy="50" r="8" fill="#334155" stroke="#1E293B" stroke-width="2"/>
+                                            <circle cx="65" cy="50" r="3" fill="#94A3B8"/>
+                                            <line x1="65" y1="42" x2="65" y2="58" stroke="#94A3B8" stroke-width="1" />
+                                            <line x1="57" y1="50" x2="73" y2="50" stroke="#94A3B8" stroke-width="1" />
+                                        </g>
+                                        <g class="animate-wheel-spin" style="transform-box: fill-box; transform-origin: center;">
+                                            <circle cx="95" cy="50" r="8" fill="#334155" stroke="#1E293B" stroke-width="2"/>
+                                            <circle cx="95" cy="50" r="3" fill="#94A3B8"/>
+                                            <line x1="95" y1="42" x2="95" y2="58" stroke="#94A3B8" stroke-width="1" />
+                                            <line x1="87" y1="50" x2="103" y2="50" stroke="#94A3B8" stroke-width="1" />
+                                        </g>
+                                    </svg>
+                                </div>
+
+                                <!-- Overlay Text -->
+                                <div class="absolute top-4 left-4 z-20 text-white">
+                                    <p class="text-xs font-bold uppercase tracking-wider mb-1 opacity-90">${this.t('todays_earnings')}</p>
+                                    <h2 class="text-4xl font-black drop-shadow-md">₹0</h2>
+                                </div>
+                                
+                                <!-- Stats Bubbles -->
+                                <div class="absolute top-4 right-16 flex gap-2 z-20">
+                                    <div class="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-lg border border-white/10 text-xs text-white font-bold">
+                                        0 ${this.t('trips')}
+                                    </div>
+                                    <div class="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-lg border border-white/10 text-xs text-white font-bold">
+                                        0h 0m
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-bold text-lg text-slate-800 dark:text-white">${this.t('nearby_orders')}</h3>
+                                    ${!this.state.isOnline ? `<span class="text-xs font-bold text-red-500 bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded">${this.t('offline_mode')}</span>` : ''}
+                                </div>
+                                ${ordersHtml}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (this.state.tab === 'trips') {
+                    return `
+                        <div class="flex flex-col items-center justify-center py-20 text-slate-400 fade-in h-[60vh]">
+                            <div class="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 text-slate-300 dark:text-slate-600">${getIcon('check', 40)}</div>
+                            <h3 class="font-bold text-lg text-slate-700 dark:text-slate-300 mb-1">${this.t('all_caught_up')}</h3>
+                            <p class="text-sm">${this.t('no_active')}</p>
+                            <button onclick="App.setTab('home')" class="mt-8 px-8 py-3 bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400 rounded-xl font-bold text-sm">${this.t('find_orders')}</button>
+                        </div>
+                    `;
+                }
+
+                if (this.state.tab === 'profile') {
+                    return `
+                        <div class="fade-in pt-4">
+                            <div class="flex items-center gap-4 mb-8">
+                                <div class="relative group">
+                                    <div class="w-20 h-20 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-600 shadow-md">
+                                        ${this.state.regData.facePhoto
+                            ? `<img src="${this.state.regData.facePhoto}" class="w-full h-full object-cover" />`
+                            : getIcon('user', 40, 'text-slate-400')}
+                                    </div>
+                                    <label class="absolute bottom-0 right-0 bg-slate-800 text-white p-1.5 rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                                        ${getIcon('camera', 12)}
+                                        <input type="file" accept="image/*" class="hidden" onchange="App.handleFileUpload('facePhoto', event)" />
+                                    </label>
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-bold text-slate-900 dark:text-white">${this.state.regData.fullName || 'Partner'}</h2>
+                                    <div class="flex items-center gap-1 text-yellow-500 font-bold text-sm">
+                                        ${getIcon('star', 14, 'fill-current')} New
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Voice Narration Toggle -->
+                             <button onclick="App.toggleVoice()" class="w-full mb-3 py-3.5 rounded-2xl font-bold border-2 ${this.state.isVoiceOn ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'} hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between px-6 active:scale-95 transition-all">
+                                <span class="flex items-center gap-3">
+                                    ${getIcon(this.state.isVoiceOn ? 'volumeUp' : 'volumeOff', 18)} 
+                                    ${this.t('voice_narration')}
+                                </span>
+                                <div class="w-10 h-5 bg-slate-300 dark:bg-slate-700 rounded-full relative transition-colors ${this.state.isVoiceOn ? '!bg-brand-500' : ''}">
+                                    <div class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${this.state.isVoiceOn ? 'translate-x-5' : ''}"></div>
+                                </div>
+                            </button>
+
+                            <!-- Language Switcher in Profile -->
+                             <button onclick="App.toggleLangModal()" class="w-full mb-4 py-3.5 rounded-2xl font-bold border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-between px-6 active:scale-95 transition-transform">
+                                <span class="flex items-center gap-3">${getIcon('globe', 18)} ${this.t('language')} / மொழி / भाषा</span>
+                                <span class="uppercase text-xs bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded">${this.state.language}</span>
+                            </button>
+                            
+                            <!-- Wallet Summary in Profile -->
+                            <button onclick="App.setView('wallet')" class="w-full mb-6 bg-slate-900 dark:bg-slate-800 rounded-2xl p-4 text-white flex justify-between items-center shadow-lg active:scale-95 transition-transform">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                                        ${getIcon('wallet', 20)}
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-400 font-bold uppercase">${this.t('wallet_bal')}</p>
+                                        <p class="font-black text-xl">₹${this.state.walletBalance.toFixed(0)}</p>
+                                    </div>
+                                </div>
+                                <div class="bg-brand-600 px-3 py-1.5 rounded-lg text-xs font-bold">Top Up</div>
+                            </button>
+
+                            <div class="space-y-3">
+                                <button onclick="App.openModal('vehicle')" class="w-full py-3.5 rounded-2xl font-bold border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 px-6 active:scale-95 transition-transform">
+                                    ${getIcon('truck', 18)} ${this.t('vehicle_info')}
+                                </button>
+                                <button onclick="App.openModal('docs')" class="w-full py-3.5 rounded-2xl font-bold border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 px-6 active:scale-95 transition-transform">
+                                    ${getIcon('file', 18)} ${this.t('documents')}
+                                </button>
+                                <button onclick="App.openModal('bank')" class="w-full py-3.5 rounded-2xl font-bold border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-3 px-6 active:scale-95 transition-transform">
+                                    ${getIcon('card', 18)} ${this.t('bank_acct')}
+                                </button>
+                                <button onclick="App.logout()" class="w-full py-3.5 rounded-2xl font-bold text-red-500 hover:bg-brand-50 mt-8 flex items-center gap-3 px-6 active:scale-95 transition-transform">
+                                    ${getIcon('logout', 18)} ${this.t('sign_out')}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+
+            renderOrderCard(order) {
+                const disabledClass = !this.state.isOnline ? 'grayscale opacity-70 pointer-events-none' : '';
+                const btnClass = !this.state.isOnline ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-brand-600 text-white shadow-lg shadow-brand-500/30';
+
+                return `
+                    <div id="order-${order.id}" class="bg-white dark:bg-dark-surface rounded-3xl p-5 shadow-sm border border-slate-100 dark:border-dark-border mb-4 slide-up transition-all duration-300 ${disabledClass}">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400">${getIcon('package', 20)}</div>
+                                <div><h3 class="font-bold text-slate-900 dark:text-white leading-tight">${order.type}</h3><p class="text-xs text-slate-500 dark:text-slate-400">${order.distance}</p></div>
+                            </div>
+                            <div class="text-right"><span class="block text-xl font-black text-brand-600 dark:text-brand-400">₹${order.payout}</span><span class="text-[10px] font-bold text-slate-400 uppercase">${this.t('cash')}</span></div>
+                        </div>
+                        <div class="relative pl-4 border-l-2 border-slate-100 dark:border-slate-700 space-y-4 mb-5">
+                            <div class="relative">
+                                <div class="absolute -left-[21px] top-1 w-3 h-3 bg-slate-300 rounded-full border-2 border-white dark:border-dark-surface"></div>
+                                <p class="text-xs text-slate-400 font-bold uppercase mb-0.5">${this.t('pickup')}</p>
+                                <p class="text-sm font-medium text-slate-800 dark:text-slate-200">${order.pickup}</p>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute -left-[21px] top-1 w-3 h-3 bg-brand-500 rounded-full border-2 border-white dark:border-dark-surface"></div>
+                                <p class="text-xs text-slate-400 font-bold uppercase mb-0.5">${this.t('drop')}</p>
+                                <p class="text-sm font-medium text-slate-800 dark:text-slate-200">${order.address}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 pointer-events-auto">
+                            <button onclick="App.declineOrder(${order.id})" class="py-3 rounded-2xl font-bold border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">${this.t('decline')}</button>
+                            <div onclick="${!this.state.isOnline ? `showToast('${this.t('go_online_msg')}')` : ''}" class="w-full">
+                                <button onclick="App.acceptOrder(${order.id})" class="w-full py-3 rounded-2xl font-bold transition-all ${btnClass}" ${!this.state.isOnline ? 'disabled' : ''}>
+                                    ${!this.state.isOnline ? this.t('offline') : this.t('accept')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderThemeToggle() {
+                return `
+                    <button onclick="App.toggleTheme(event)" class="relative w-14 h-8 rounded-full bg-slate-200 dark:bg-slate-700 transition-colors p-1 border-2 border-white dark:border-slate-600 shadow-sm">
+                        <div class="w-5 h-5 rounded-full bg-white shadow-sm flex items-center justify-center transition-transform transform ${this.state.isDark ? 'translate-x-6' : 'translate-x-0'}">
+                        ${this.state.isDark
+                        ? getIcon('moon', 12, 'text-slate-700')
+                        : getIcon('sun', 12, 'text-amber-500')}
+                    </div>
+                </button>
+            `;
+            },
+
+            renderNavBtn(id, label, iconName, badge = 0) {
+                const isActive = this.state.tab === id;
+                return `
+                <button onclick="App.setTab('${id}')" class="relative group w-16 flex flex-col items-center justify-center transition-all duration-300 ${isActive ? '-translate-y-2' : ''}">
+                    ${badge > 0 ? `
+                        <div class="absolute -top-1 right-3 z-10 w-5 h-5 bg-red-500 border-2 border-white dark:border-dark-bg text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-bounce shadow-sm">
+                            ${badge}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="p-2 rounded-2xl transition-all duration-300 ${isActive ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/40 scale-110' : 'text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}">
+                        ${getIcon(iconName, 24)}
+                    </div>
+                    
+                    <span class="text-[10px] font-bold mt-1 transition-all duration-300 ${isActive ? 'text-brand-600 dark:text-brand-400 opacity-100 translate-y-0' : 'text-slate-400 opacity-0 -translate-y-2 absolute bottom-0'}">
+                        ${label}
+                    </span>
+                    
+                    ${isActive ? '<div class="absolute -bottom-2 w-1 h-1 bg-brand-600 rounded-full"></div>' : ''}
+                </button>
+            `;
+            }
+        };
+
+        // --- 4. INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                App.init();
+            }, 100);
+        });
+
+    </script>
+</body>
+
+</html>
