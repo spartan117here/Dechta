@@ -1,16 +1,79 @@
-# React + Vite
+# Quickl Com 🚀
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Quickl Com is a fully developed multi-service web platform designed to connect **hardware tool services, skilled manpower, and delivery partners** with customers through a single digital ecosystem.
 
-Currently, two official plugins are available:
+The platform supports **Clients, Service Partners, Delivery Partners, and Admin** with role-based access and management features.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🔧 Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 👤 Client Module
+- Browse hardware tools & services
+- Request manpower or delivery services
+- Place and track service/orders
+- Real-time status updates
+- Simple and user-friendly interface
 
-## Expanding the ESLint configuration
+### 🛠️ Service / Manpower Partner Module
+- Partner onboarding & profile management
+- Accept or reject service requests
+- Manage active and completed jobs
+- Service availability control
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 🚚 Delivery Partner Module
+- Order assignment & tracking
+- Delivery status updates
+- Partner dashboard for daily tasks
+
+### 🧑‍💼 Admin Module
+- Centralized admin dashboard
+- Manage clients, partners, and delivery agents
+- Approve/reject partner registrations
+- Monitor orders, services, and platform activity
+- Data control and system monitoring
+
+---
+
+## 🧩 Tech Stack
+
+- **Frontend:** HTML, CSS, JavaScript  
+- **Backend / Database:** Supabase  
+- **Authentication:** Role-based login (Client / Partner / Admin)  
+- **Hosting:** Netlify / Cloud hosting  
+- **Integrations:** WhatsApp / Order redirection (if applicable)
+
+---
+
+## 🎯 Project Objective
+
+To build a **scalable, real-world service marketplace** that simplifies:
+- Hardware tool access
+- Manpower hiring
+- Last-mile delivery coordination
+
+All within a single, efficient web platform.
+
+---
+
+## 📌 Highlights
+
+- Fully designed & developed from scratch
+- Role-based access control
+- Real-world business use case
+- Clean UI and structured dashboards
+- Production-ready architecture
+
+---
+
+## 📂 Project Status
+
+✅ Core features completed  
+🚧 Enhancements & optimizations in progress  
+
+---
+
+## 👨‍💻 Developer
+
+Developed independently with a focus on **practical business workflows, usability, and scalability**.
+
